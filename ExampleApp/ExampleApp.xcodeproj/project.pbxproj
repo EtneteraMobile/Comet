@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -13,6 +13,7 @@
 		BE5F5160265D974400F3050C /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = BE5F515E265D974400F3050C /* Main.storyboard */; };
 		BE5F5162265D974600F3050C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BE5F5161265D974600F3050C /* Assets.xcassets */; };
 		BE5F5165265D974600F3050C /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = BE5F5163265D974600F3050C /* LaunchScreen.storyboard */; };
+		BE5F5173265D9DE900F3050C /* Comet in Frameworks */ = {isa = PBXBuildFile; productRef = BE5F5172265D9DE900F3050C /* Comet */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -31,6 +32,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BE5F5173265D9DE900F3050C /* Comet in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -42,6 +44,7 @@
 			children = (
 				BE5F5157265D974400F3050C /* ExampleApp */,
 				BE5F5156265D974400F3050C /* Products */,
+				BE5F516D265D986900F3050C /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -67,6 +70,13 @@
 			path = ExampleApp;
 			sourceTree = "<group>";
 		};
+		BE5F516D265D986900F3050C /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -83,6 +93,9 @@
 			dependencies = (
 			);
 			name = ExampleApp;
+			packageProductDependencies = (
+				BE5F5172265D9DE900F3050C /* Comet */,
+			);
 			productName = ExampleApp;
 			productReference = BE5F5155265D974400F3050C /* ExampleApp.app */;
 			productType = "com.apple.product-type.application";
@@ -339,6 +352,13 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		BE5F5172265D9DE900F3050C /* Comet */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Comet;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = BE5F514D265D974400F3050C /* Project object */;
 }
