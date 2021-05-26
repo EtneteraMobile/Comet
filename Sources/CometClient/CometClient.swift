@@ -35,7 +35,19 @@ public final class CometClient {
         responseType: ResponseObject.Type
     ) -> AnyPublisher<ResponseObject, CometClientError> {
         authenticator.token
-            .mapError { _ in CometClientError.loginRequired }
+            .catch { [weak self] error -> AnyPublisher<String, AuthenticatorError> in
+                switch error {
+                case .noValidToken:
+                    guard let unwrappedSelf = self else {
+                        return Fail(error: AuthenticatorError.internalError).eraseToAnyPublisher()
+                    }
+
+                    return unwrappedSelf.authenticator.refreshedToken
+                default:
+                    return Fail(error: error).eraseToAnyPublisher()
+                }
+            }
+            .mapError { $0.cometClientError }
             .flatMap { [weak self] token -> AnyPublisher<ResponseObject, CometClientError> in
                 guard let unwrappedSelf = self else {
                     return Fail(error: CometClientError.internalError).eraseToAnyPublisher()
@@ -51,7 +63,7 @@ public final class CometClient {
                 switch error {
                 case .unauthorized:
                     return unwrappedSelf.authenticator.refreshedToken
-                        .mapError { _ in CometClientError.loginRequired }
+                        .mapError { $0.cometClientError }
                         .flatMap{ token -> AnyPublisher<ResponseObject, CometClientError> in
                             unwrappedSelf.performAuthorizedRequest(request, with: token)
                         }
@@ -99,5 +111,24 @@ private extension CometClient {
                 return unwrappedSelf.requestResponseHandler.handleResponse(data: output.data, response: output.response)
             }
             .eraseToAnyPublisher()
+    }
+}
+
+fileprivate extension AuthenticatorError {
+    var cometClientError: CometClientError {
+        switch self {
+        case .noValidToken:
+            return .loginRequired
+        case .internalError:
+            return .internalError
+        case .loginRequired:
+            return .loginRequired
+        case .internalServerError:
+            return .internalServerError
+        case .httpError(let code):
+            return .httpError(code: code)
+        case .networkError(let error):
+            return .networkError(from: error)
+        }
     }
 }

@@ -14,4 +14,5 @@ enum AuthenticatorError: Error {
     case loginRequired
     case internalServerError
     case httpError(code: Int)
+    case networkError(from: URLError)
 }

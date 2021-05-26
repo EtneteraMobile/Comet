@@ -15,20 +15,18 @@ public final class CometRequestResponseHandler: RequestResponseHandling {
 
     public func handleResponse<ResponseObject: Decodable>(data: Data, response: URLResponse) -> AnyPublisher<ResponseObject, CometClientError> {
         guard let httpResponse = response as? HTTPURLResponse else {
-            return Fail(error: CometClientError.unknown).eraseToAnyPublisher()
+            return Fail(error: CometClientError.internalError).eraseToAnyPublisher()
         }
 
         switch httpResponse.statusCode {
         case 401:
             return Fail(error: CometClientError.unauthorized).eraseToAnyPublisher()
-        case 403:
-            return Fail(error: CometClientError.apiError(reason: "Forbidden")).eraseToAnyPublisher()
-        case 404:
-            return Fail(error: CometClientError.apiError(reason: "Not found")).eraseToAnyPublisher()
-        case 405..<500:
-            return Fail(error: CometClientError.apiError(reason: "Client error")).eraseToAnyPublisher()
+        case 403,
+             404,
+             405..<500:
+            return Fail(error: CometClientError.httpError(code: httpResponse.statusCode)).eraseToAnyPublisher()
         case 500..<600:
-            return Fail(error: CometClientError.apiError(reason: "Server error")).eraseToAnyPublisher()
+            return Fail(error: CometClientError.internalServerError).eraseToAnyPublisher()
         default:
             return Just(data)
                 .decode(type: ResponseObject.self, decoder: JSONDecoder())

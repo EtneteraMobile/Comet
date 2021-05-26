@@ -9,6 +9,8 @@
 import Combine
 import Foundation
 
+// TODO: add more information about accessToken and refreshAccessToken
+
 /// Provides access tokens for the [HTTPClient](x-source-tag://HTTPClient).
 ///
 /// This is where you either load access tokens from the local storage (e.g. `Keychain`)

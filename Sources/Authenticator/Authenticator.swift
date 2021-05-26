@@ -29,7 +29,7 @@ final class Authenticator {
             }
 
             return unwrappedSelf.tokenProvider.accessToken
-                .mapError { _ in AuthenticatorError.noValidToken }
+                .mapError { $0.authenticatorError }
                 .eraseToAnyPublisher()
         }
     }
@@ -45,7 +45,7 @@ final class Authenticator {
             }
 
             let publisher = unwrappedSelf.tokenProvider.refreshAccessToken
-                .mapError { _ in AuthenticatorError.noValidToken }
+                .mapError { $0.authenticatorError }
                 .handleEvents(receiveCompletion: { _ in
                     unwrappedSelf.refreshTokenPublisher = nil
                 })
@@ -72,7 +72,10 @@ fileprivate extension TokenProvidingError {
             return .internalServerError
         case .httpError(let code):
             return .httpError(code: code)
+        case .internalError:
+            return .internalError
+        case .networkError(let error):
+            return .networkError(from: error)
         }
     }
 }
-
