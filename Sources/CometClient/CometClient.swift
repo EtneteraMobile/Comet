@@ -74,13 +74,6 @@ public final class CometClient {
             }
             .eraseToAnyPublisher()
     }
-
-    public func performRequest<ResponseObject: Decodable>(
-        _ request: URLRequest,
-        responseType: ResponseObject.Type
-    ) -> AnyPublisher<ResponseObject, CometClientError> {
-        performRequest(request)
-    }
 }
 
 private extension CometClient {
