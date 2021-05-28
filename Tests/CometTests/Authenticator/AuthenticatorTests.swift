@@ -46,8 +46,7 @@ final class AuthenticatorTests: XCTestCase {
         XCTAssertEqual(token, receivedToken)
     }
 
-    // TODO: test more errors
-    func testTokenReturnsNoValidTokenError() {
+    func testNoValidTokenErrorIsReturnedWhenTokenProviderReturnsNoTokenError() {
         let tokenProvider = StubTokenProvider(
             accessToken: Fail(error: TokenProvidingError.noToken).eraseToAnyPublisher(),
             refreshAccessToken: Empty().eraseToAnyPublisher()
@@ -72,6 +71,170 @@ final class AuthenticatorTests: XCTestCase {
         waitForExpectations(timeout: 1)
 
         XCTAssertEqual(receivedError, AuthenticatorError.noValidToken)
+    }
+
+    func testNoValidTokenErrorIsReturnedWhenTokenProviderReturnsInvalidTokenError() {
+        let tokenProvider = StubTokenProvider(
+            accessToken: Fail(error: TokenProvidingError.invalidToken).eraseToAnyPublisher(),
+            refreshAccessToken: Empty().eraseToAnyPublisher()
+        )
+        let sut = Authenticator(tokenProvider: tokenProvider)
+
+        let exp = expectation(description: "")
+        var receivedError: AuthenticatorError?
+
+        sut.accessToken
+            .sink(
+                receiveCompletion: { completion in
+                    if case let Subscribers.Completion.failure(error) = completion {
+                        receivedError = error
+                        exp.fulfill()
+                    }
+                },
+                receiveValue: { _ in }
+            )
+            .store(in: &cancellables)
+
+        waitForExpectations(timeout: 1)
+
+        XCTAssertEqual(receivedError, AuthenticatorError.noValidToken)
+    }
+
+    func testLoginRequiredErrorIsReturnedWhenTokenProviderReturnsLoginRequiredError() {
+        let tokenProvider = StubTokenProvider(
+            accessToken: Fail(error: TokenProvidingError.loginRequired).eraseToAnyPublisher(),
+            refreshAccessToken: Empty().eraseToAnyPublisher()
+        )
+        let sut = Authenticator(tokenProvider: tokenProvider)
+
+        let exp = expectation(description: "")
+        var receivedError: AuthenticatorError?
+
+        sut.accessToken
+            .sink(
+                receiveCompletion: { completion in
+                    if case let Subscribers.Completion.failure(error) = completion {
+                        receivedError = error
+                        exp.fulfill()
+                    }
+                },
+                receiveValue: { _ in }
+            )
+            .store(in: &cancellables)
+
+        waitForExpectations(timeout: 1)
+
+        XCTAssertEqual(receivedError, AuthenticatorError.loginRequired)
+    }
+
+    func testInternalServerErrorIsReturnedWhenTokenProviderReturnsInternalServerError() {
+        let tokenProvider = StubTokenProvider(
+            accessToken: Fail(error: TokenProvidingError.internalServerError).eraseToAnyPublisher(),
+            refreshAccessToken: Empty().eraseToAnyPublisher()
+        )
+        let sut = Authenticator(tokenProvider: tokenProvider)
+
+        let exp = expectation(description: "")
+        var receivedError: AuthenticatorError?
+
+        sut.accessToken
+            .sink(
+                receiveCompletion: { completion in
+                    if case let Subscribers.Completion.failure(error) = completion {
+                        receivedError = error
+                        exp.fulfill()
+                    }
+                },
+                receiveValue: { _ in }
+            )
+            .store(in: &cancellables)
+
+        waitForExpectations(timeout: 1)
+
+        XCTAssertEqual(receivedError, AuthenticatorError.internalServerError)
+    }
+
+    func testHttpErrorIsReturnedWhenTokenProviderReturnsHttpError() {
+        let code = 400
+        let tokenProvider = StubTokenProvider(
+            accessToken: Fail(error: TokenProvidingError.httpError(code: code)).eraseToAnyPublisher(),
+            refreshAccessToken: Empty().eraseToAnyPublisher()
+        )
+        let sut = Authenticator(tokenProvider: tokenProvider)
+
+        let exp = expectation(description: "")
+        var receivedError: AuthenticatorError?
+
+        sut.accessToken
+            .sink(
+                receiveCompletion: { completion in
+                    if case let Subscribers.Completion.failure(error) = completion {
+                        receivedError = error
+                        exp.fulfill()
+                    }
+                },
+                receiveValue: { _ in }
+            )
+            .store(in: &cancellables)
+
+        waitForExpectations(timeout: 1)
+
+        XCTAssertEqual(receivedError, AuthenticatorError.httpError(code: code))
+    }
+
+    func testInternalErrorIsReturnedWhenTokenProviderReturnsInternalError() {
+        let tokenProvider = StubTokenProvider(
+            accessToken: Fail(error: TokenProvidingError.internalError).eraseToAnyPublisher(),
+            refreshAccessToken: Empty().eraseToAnyPublisher()
+        )
+        let sut = Authenticator(tokenProvider: tokenProvider)
+
+        let exp = expectation(description: "")
+        var receivedError: AuthenticatorError?
+
+        sut.accessToken
+            .sink(
+                receiveCompletion: { completion in
+                    if case let Subscribers.Completion.failure(error) = completion {
+                        receivedError = error
+                        exp.fulfill()
+                    }
+                },
+                receiveValue: { _ in }
+            )
+            .store(in: &cancellables)
+
+        waitForExpectations(timeout: 1)
+
+        XCTAssertEqual(receivedError, AuthenticatorError.internalError)
+    }
+
+    func testNetworkErrorIsReturnedWhenTokenProviderReturnsNetworkError() {
+        let urlError = URLError(.badServerResponse)
+        let tokenProvider = StubTokenProvider(
+            accessToken: Fail(error: TokenProvidingError.networkError(from: urlError)).eraseToAnyPublisher(),
+            refreshAccessToken: Empty().eraseToAnyPublisher()
+        )
+        let sut = Authenticator(tokenProvider: tokenProvider)
+
+        let exp = expectation(description: "")
+        var receivedError: AuthenticatorError?
+
+        sut.accessToken
+            .sink(
+                receiveCompletion: { completion in
+                    if case let Subscribers.Completion.failure(error) = completion {
+                        receivedError = error
+                        exp.fulfill()
+                    }
+                },
+                receiveValue: { _ in }
+            )
+            .store(in: &cancellables)
+
+        waitForExpectations(timeout: 1)
+
+        XCTAssertEqual(receivedError, AuthenticatorError.networkError(from: urlError))
     }
 
     func testAccessTokenReturnsRefreshedAccessToken() {
@@ -133,34 +296,6 @@ final class AuthenticatorTests: XCTestCase {
         waitForExpectations(timeout: 1)
 
         XCTAssertEqual(token, receivedToken)
-    }
-
-    // TODO: delete
-    func testRefreshedTokenReturnsNoValidTokenError() {
-        let tokenProvider = StubTokenProvider(
-            accessToken: Empty().eraseToAnyPublisher(),
-            refreshAccessToken: Fail(error: TokenProvidingError.noToken).eraseToAnyPublisher()
-        )
-        let sut = Authenticator(tokenProvider: tokenProvider)
-
-        let exp = expectation(description: "")
-        var receivedError: AuthenticatorError?
-
-        sut.refreshAccessToken
-            .sink(
-                receiveCompletion: { completion in
-                    if case let Subscribers.Completion.failure(error) = completion {
-                        receivedError = error
-                        exp.fulfill()
-                    }
-                },
-                receiveValue: { _ in }
-            )
-            .store(in: &cancellables)
-
-        waitForExpectations(timeout: 1)
-
-        XCTAssertEqual(receivedError, AuthenticatorError.noValidToken)
     }
 
     func testMultipleRequestsForTokenAndRefreshedTokenAtTheSameTime() {
@@ -287,10 +422,13 @@ extension AuthenticatorError: Equatable {
         case (.noValidToken, .noValidToken),
              (.internalError, .internalError),
              (.loginRequired, .loginRequired),
-             (.internalServerError, .internalServerError):
+             (.internalServerError, .internalServerError),
+             (.internalError, .internalError):
             return true
         case (.httpError(let lhsCode), .httpError(let rhsCode)):
             return lhsCode == rhsCode
+        case (.networkError(let lhsError), .networkError(let rhsError)):
+            return lhsError == rhsError
         default:
             return false
         }
