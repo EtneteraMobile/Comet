@@ -10,8 +10,7 @@ import Combine
 @testable import Comet
 import XCTest
 
-// TODO: rename tests
-class AuthenticatorTests: XCTestCase {
+final class AuthenticatorTests: XCTestCase {
     private var cancellables: Set<AnyCancellable>!
 
     override func setUp() {
@@ -19,8 +18,8 @@ class AuthenticatorTests: XCTestCase {
         cancellables = []
     }
 
-    func testReceivingTokenIsSuccessful() {
-        let token = "thisIsJustRandomToken"
+    func testAccessTokenReturnsToken() {
+        let token = "token"
         let tokenProvider = StubTokenProvider(
             accessToken: Just(token)
                 .setFailureType(to: TokenProvidingError.self)
@@ -32,7 +31,7 @@ class AuthenticatorTests: XCTestCase {
         let exp = expectation(description: "")
         var receivedToken: String?
 
-        sut.token
+        sut.accessToken
             .sink(
                 receiveCompletion: { _ in },
                 receiveValue: { token in
@@ -47,6 +46,7 @@ class AuthenticatorTests: XCTestCase {
         XCTAssertEqual(token, receivedToken)
     }
 
+    // TODO: test more errors
     func testTokenReturnsNoValidTokenError() {
         let tokenProvider = StubTokenProvider(
             accessToken: Fail(error: TokenProvidingError.noToken).eraseToAnyPublisher(),
@@ -57,7 +57,7 @@ class AuthenticatorTests: XCTestCase {
         let exp = expectation(description: "")
         var receivedError: AuthenticatorError?
 
-        sut.token
+        sut.accessToken
             .sink(
                 receiveCompletion: { completion in
                     if case let Subscribers.Completion.failure(error) = completion {
@@ -74,11 +74,11 @@ class AuthenticatorTests: XCTestCase {
         XCTAssertEqual(receivedError, AuthenticatorError.noValidToken)
     }
 
-    func testTokenReturnsRefreshedTokenAfterNewTokenIsRefreshed() {
-        let refreshedToken = "thisIsJustRandomToken"
+    func testAccessTokenReturnsRefreshedAccessToken() {
+        let token = "token"
         let tokenProvider = StubTokenProvider(
             accessToken: Empty().eraseToAnyPublisher(),
-            refreshAccessToken: Just(refreshedToken)
+            refreshAccessToken: Just(token)
                 .delay(for: 2, scheduler: RunLoop.main)
                 .setFailureType(to: TokenProvidingError.self)
                 .eraseToAnyPublisher()
@@ -88,11 +88,11 @@ class AuthenticatorTests: XCTestCase {
         let exp = expectation(description: "")
         var receivedToken: String?
 
-        sut.refreshedToken
+        sut.refreshAccessToken
             .sink(receiveCompletion: { _ in }, receiveValue: { _ in })
             .store(in: &cancellables)
 
-        sut.token
+        sut.accessToken
             .sink(
                 receiveCompletion: { _ in },
                 receiveValue: { token in
@@ -104,14 +104,14 @@ class AuthenticatorTests: XCTestCase {
 
         waitForExpectations(timeout: 3)
 
-        XCTAssertEqual(refreshedToken, receivedToken)
+        XCTAssertEqual(token, receivedToken)
     }
 
-    func testRefreshedTokenReturnsSuccessfullyNewToken() {
-        let refreshedToken = "tokentoken"
+    func testRefreshAccessTokenReturnsToken() {
+        let token = "token"
         let tokenProvider = StubTokenProvider(
             accessToken: Empty().eraseToAnyPublisher(),
-            refreshAccessToken: Just(refreshedToken)
+            refreshAccessToken: Just(token)
                 .setFailureType(to: TokenProvidingError.self)
                 .eraseToAnyPublisher()
         )
@@ -120,7 +120,7 @@ class AuthenticatorTests: XCTestCase {
         let exp = expectation(description: "")
         var receivedToken: String?
 
-        sut.refreshedToken
+        sut.refreshAccessToken
             .sink(
                 receiveCompletion: { _ in },
                 receiveValue: { token in
@@ -132,9 +132,10 @@ class AuthenticatorTests: XCTestCase {
 
         waitForExpectations(timeout: 1)
 
-        XCTAssertEqual(refreshedToken, receivedToken)
+        XCTAssertEqual(token, receivedToken)
     }
 
+    // TODO: delete
     func testRefreshedTokenReturnsNoValidTokenError() {
         let tokenProvider = StubTokenProvider(
             accessToken: Empty().eraseToAnyPublisher(),
@@ -145,7 +146,7 @@ class AuthenticatorTests: XCTestCase {
         let exp = expectation(description: "")
         var receivedError: AuthenticatorError?
 
-        sut.refreshedToken
+        sut.refreshAccessToken
             .sink(
                 receiveCompletion: { completion in
                     if case let Subscribers.Completion.failure(error) = completion {
@@ -175,7 +176,7 @@ class AuthenticatorTests: XCTestCase {
 
         let exp1 = XCTestExpectation()
         var token1: String?
-        sut.refreshedToken
+        sut.refreshAccessToken
             .sink(
                 receiveCompletion: { _ in },
                 receiveValue: { token in
@@ -187,7 +188,7 @@ class AuthenticatorTests: XCTestCase {
 
         let exp2 = XCTestExpectation()
         var token2: String?
-        sut.token
+        sut.accessToken
             .sink(
                 receiveCompletion: { _ in },
                 receiveValue: { token in
@@ -199,7 +200,7 @@ class AuthenticatorTests: XCTestCase {
 
         let exp3 = XCTestExpectation()
         var token3: String?
-        sut.refreshedToken
+        sut.refreshAccessToken
             .sink(
                 receiveCompletion: { _ in },
                 receiveValue: { token in
@@ -211,7 +212,7 @@ class AuthenticatorTests: XCTestCase {
 
         let exp4 = XCTestExpectation()
         var token4: String?
-        sut.refreshedToken
+        sut.refreshAccessToken
             .sink(
                 receiveCompletion: { _ in },
                 receiveValue: { token in
@@ -245,7 +246,7 @@ class AuthenticatorTests: XCTestCase {
         let sut = Authenticator(tokenProvider: tokenProvider)
 
         let exp1 = XCTestExpectation()
-        sut.refreshedToken
+        sut.refreshAccessToken
             .sink(
                 receiveCompletion: { _ in },
                 receiveValue: { _ in
@@ -255,7 +256,7 @@ class AuthenticatorTests: XCTestCase {
             .store(in: &cancellables)
 
         let exp2 = XCTestExpectation()
-        sut.token
+        sut.accessToken
             .sink(
                 receiveCompletion: { _ in },
                 receiveValue: { _ in
@@ -265,7 +266,7 @@ class AuthenticatorTests: XCTestCase {
             .store(in: &cancellables)
 
         let exp3 = XCTestExpectation()
-        sut.refreshedToken
+        sut.refreshAccessToken
             .sink(
                 receiveCompletion: { _ in },
                 receiveValue: { _ in
@@ -295,4 +296,3 @@ extension AuthenticatorError: Equatable {
         }
     }
 }
-

@@ -3,5 +3,6 @@ import XCTest
 import CometTests
 
 var tests = [XCTestCaseEntry]()
-tests += CometTests.allTests()
+tests += CometTests.__allTests()
+
 XCTMain(tests)

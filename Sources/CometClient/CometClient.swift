@@ -34,7 +34,7 @@ public final class CometClient {
         _ request: URLRequest,
         responseType: ResponseObject.Type
     ) -> AnyPublisher<ResponseObject, CometClientError> {
-        authenticator.token
+        authenticator.accessToken
             .catch { [weak self] error -> AnyPublisher<String, AuthenticatorError> in
                 switch error {
                 case .noValidToken:
@@ -42,7 +42,7 @@ public final class CometClient {
                         return Fail(error: AuthenticatorError.internalError).eraseToAnyPublisher()
                     }
 
-                    return unwrappedSelf.authenticator.refreshedToken
+                    return unwrappedSelf.authenticator.refreshAccessToken
                 default:
                     return Fail(error: error).eraseToAnyPublisher()
                 }
@@ -62,7 +62,7 @@ public final class CometClient {
 
                 switch error {
                 case .unauthorized:
-                    return unwrappedSelf.authenticator.refreshedToken
+                    return unwrappedSelf.authenticator.refreshAccessToken
                         .mapError { $0.cometClientError }
                         .flatMap{ token -> AnyPublisher<ResponseObject, CometClientError> in
                             unwrappedSelf.performAuthorizedRequest(request, with: token)

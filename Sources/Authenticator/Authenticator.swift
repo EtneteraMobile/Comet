@@ -18,7 +18,7 @@ final class Authenticator {
         self.tokenProvider = tokenProvider
     }
 
-    var token: AnyPublisher<String, AuthenticatorError> {
+    var accessToken: AnyPublisher<String, AuthenticatorError> {
         queue.sync { [weak self] in
             guard let unwrappedSelf = self else {
                 return Fail(error: AuthenticatorError.internalError).eraseToAnyPublisher()
@@ -34,7 +34,7 @@ final class Authenticator {
         }
     }
 
-    var refreshedToken: AnyPublisher<String, AuthenticatorError> {
+    var refreshAccessToken: AnyPublisher<String, AuthenticatorError> {
         queue.sync { [weak self] in
             guard let unwrappedSelf = self else {
                 return Fail(error: AuthenticatorError.internalError).eraseToAnyPublisher()
