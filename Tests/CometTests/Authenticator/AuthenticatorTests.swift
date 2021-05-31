@@ -414,6 +414,65 @@ final class AuthenticatorTests: XCTestCase {
 
         XCTAssertEqual(counter, 1)
     }
+
+    func testFailingTest() {
+        let token = "token"
+        let tokenProvider = StubTokenProvider(
+            accessToken: Fail(error: TokenProvidingError.internalError).eraseToAnyPublisher(),
+            refreshAccessToken: Just(token)
+                .delay(for: 0.001, scheduler: DispatchQueue.global())
+                .setFailureType(to: TokenProvidingError.self)
+                .eraseToAnyPublisher()
+        )
+        let sut = Authenticator(tokenProvider: tokenProvider)
+
+        sut.refreshAccessToken
+            .sink(
+                receiveCompletion: { _ in },
+                receiveValue: { _ in print("token refreshed") }
+            )
+            .store(in: &cancellables)
+
+        var receivedRefreshToken = [Int]()
+        var finishedRefreshedToken = [Int]()
+        var failed = [Int]() // these get the access token, which is now a Fail
+
+        for i in 0...999 {
+            let exp = expectation(description: "\(i)")
+            sut.accessToken
+                .receive(on: DispatchQueue.main) // synchronizing the access to the arrays
+                .sink(
+                    receiveCompletion: { completion in
+                        switch completion {
+                        case .finished:
+                            finishedRefreshedToken.append(i)
+                        case .failure:
+                            failed.append(i)
+                        }
+                        exp.fulfill()
+                    },
+                    receiveValue: { token in
+                        receivedRefreshToken.append(i)
+                    }
+                )
+                .store(in: &cancellables)
+        }
+
+        waitForExpectations(timeout: 2)
+
+        receivedRefreshToken.sort()
+        finishedRefreshedToken.sort()
+        failed.sort()
+
+        print("-----------------RECEIVED-----------------")
+        print(receivedRefreshToken)
+        print("-----------------FINISHED-----------------")
+        print(finishedRefreshedToken)
+        print("------------------FAILED------------------")
+        print(failed)
+
+        XCTAssertEqual(receivedRefreshToken, finishedRefreshedToken)
+    }
 }
 
 extension AuthenticatorError: Equatable {
