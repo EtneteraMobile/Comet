@@ -9,7 +9,6 @@
 import Combine
 import Foundation
 
-// TODO: add refresh token to CometClient
 /// TODO
 /// - Tag: CometClient
 public final class CometClient {
@@ -81,6 +80,11 @@ public final class CometClient {
                 }
             }
             .eraseToAnyPublisher()
+    }
+
+    // TODO: implement
+    public func performAuthenticatedRequest(_ request: URLRequest) -> AnyPublisher<(data: Data, response: URLResponse), CometClientError> {
+        Empty().eraseToAnyPublisher()
     }
 }
 
