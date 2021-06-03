@@ -481,7 +481,7 @@ extension AuthenticatorError: Equatable {
         case (.noValidToken, .noValidToken),
              (.internalError, .internalError),
              (.loginRequired, .loginRequired),
-             (.internalServerError, .internalServerError),
+             (.internalServerError, .internalServerError):
             return true
         case (.httpError(let lhsCode), .httpError(let rhsCode)):
             return lhsCode == rhsCode
