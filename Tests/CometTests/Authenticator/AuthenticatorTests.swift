@@ -482,7 +482,6 @@ extension AuthenticatorError: Equatable {
              (.internalError, .internalError),
              (.loginRequired, .loginRequired),
              (.internalServerError, .internalServerError),
-             (.internalError, .internalError):
             return true
         case (.httpError(let lhsCode), .httpError(let rhsCode)):
             return lhsCode == rhsCode
