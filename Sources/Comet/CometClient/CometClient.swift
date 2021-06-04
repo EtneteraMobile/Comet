@@ -84,7 +84,10 @@ public final class CometClient {
 
     // TODO: implement
     public func performAuthenticatedRequest(_ request: URLRequest) -> AnyPublisher<(data: Data, response: URLResponse), CometClientError> {
-        Empty().eraseToAnyPublisher()
+
+
+
+        return Empty().eraseToAnyPublisher()
     }
 }
 

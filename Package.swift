@@ -19,8 +19,7 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "Comet",
-            path: "Sources"
+            name: "Comet"
         ),
         .testTarget(
             name: "CometTests",
