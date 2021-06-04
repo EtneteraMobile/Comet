@@ -20,20 +20,18 @@ public final class CometClient {
     public init(
         urlSession: URLSession = .shared,
         tokenProvider: TokenProviding,
-        authorizedRequestBuilder: AuthenticatedRequestBuilding,
+        authenticatedRequestBuilder: AuthenticatedRequestBuilding,
         requestResponseHandler: RequestResponseHandling = CometRequestResponseHandler()
     ) {
         self.urlSession = urlSession
         self.authenticator = Authenticator(tokenProvider: tokenProvider)
-        self.authenticatedRequestBuilder = authorizedRequestBuilder
+        self.authenticatedRequestBuilder = authenticatedRequestBuilder
         self.requestResponseHandler = requestResponseHandler
     }
 
-    public func performAuthenticatedRequest<ResponseObject: Decodable>(
-        _ request: URLRequest,
-        responseType: ResponseObject.Type,
-        requestResponseHandler: RequestResponseHandling? = nil
-    ) -> AnyPublisher<ResponseObject, CometClientError> {
+    public func performAuthenticatedRequest(
+        _ request: URLRequest
+    ) -> AnyPublisher<(data: Data, response: URLResponse), CometClientError> {
         authenticator.accessToken
             .catch { [weak self] error -> AnyPublisher<String, AuthenticatorError> in
                 switch error {
@@ -48,18 +46,14 @@ public final class CometClient {
                 }
             }
             .mapError { $0.cometClientError }
-            .flatMap { [weak self] token -> AnyPublisher<ResponseObject, CometClientError> in
+            .flatMap { [weak self] token -> AnyPublisher<(data: Data, response: URLResponse), CometClientError> in
                 guard let unwrappedSelf = self else {
                     return Fail(error: CometClientError.internalError).eraseToAnyPublisher()
                 }
 
-                return unwrappedSelf.performAuthorizedRequest(
-                    request,
-                    with: token,
-                    requestResponseHandler: requestResponseHandler ?? unwrappedSelf.requestResponseHandler
-                )
+                return unwrappedSelf.performAuthenticatedRequest(request, with: token)
             }
-            .catch { [weak self] error -> AnyPublisher<ResponseObject, CometClientError> in
+            .catch { [weak self] error -> AnyPublisher<(data: Data, response: URLResponse), CometClientError> in
                 guard let unwrappedSelf = self else {
                     return Fail(error: CometClientError.internalError).eraseToAnyPublisher()
                 }
@@ -68,11 +62,8 @@ public final class CometClient {
                 case .unauthorized:
                     return unwrappedSelf.authenticator.refreshAccessToken
                         .mapError { $0.cometClientError }
-                        .flatMap{ token -> AnyPublisher<ResponseObject, CometClientError> in
-                            unwrappedSelf.performAuthorizedRequest(
-                                request, with: token,
-                                requestResponseHandler: requestResponseHandler ?? unwrappedSelf.requestResponseHandler
-                            )
+                        .flatMap{ token in
+                            unwrappedSelf.performAuthenticatedRequest(request, with: token)
                         }
                         .eraseToAnyPublisher()
                 default:
@@ -82,42 +73,40 @@ public final class CometClient {
             .eraseToAnyPublisher()
     }
 
-    // TODO: implement
-    public func performAuthenticatedRequest(_ request: URLRequest) -> AnyPublisher<(data: Data, response: URLResponse), CometClientError> {
-
-
-
-        return Empty().eraseToAnyPublisher()
-    }
-}
-
-private extension CometClient {
-    func performAuthorizedRequest<ResponseObject: Decodable>(
+    public func performAuthenticatedRequest<ResponseObject: Decodable>(
         _ request: URLRequest,
-        with token: String,
-        requestResponseHandler: RequestResponseHandling
+        responseType: ResponseObject.Type,
+        requestResponseHandler: RequestResponseHandling? = nil
     ) -> AnyPublisher<ResponseObject, CometClientError> {
-        Just(authenticatedRequestBuilder.authenticatedRequest(from: request, with: token))
-            .setFailureType(to: CometClientError.self)
-            .flatMap { [weak self] request -> AnyPublisher<ResponseObject, CometClientError> in
+        performAuthenticatedRequest(request)
+            .flatMap { [weak self] data, response -> AnyPublisher<ResponseObject, CometClientError> in
                 guard let unwrappedSelf = self else {
                     return Fail(error: CometClientError.internalError).eraseToAnyPublisher()
                 }
 
-                return unwrappedSelf.performRequest(request, requestResponseHandler: requestResponseHandler)
+                return (requestResponseHandler ?? unwrappedSelf.requestResponseHandler)
+                    .handleResponse(data: data, response: response)
             }
             .eraseToAnyPublisher()
     }
+}
 
-    func performRequest<ResponseObject: Decodable>(
+private extension CometClient {
+    func performAuthenticatedRequest(
         _ request: URLRequest,
-        requestResponseHandler: RequestResponseHandling
-    ) -> AnyPublisher<ResponseObject, CometClientError> {
+        with token: String
+    ) -> AnyPublisher<(data: Data, response: URLResponse), CometClientError> {
+        Just(authenticatedRequestBuilder.authenticatedRequest(from: request, with: token))
+            .setFailureType(to: CometClientError.self)
+            .flatMap(performRequest)
+            .eraseToAnyPublisher()
+    }
+
+    func performRequest(
+        _ request: URLRequest
+    ) -> AnyPublisher<(data: Data, response: URLResponse), CometClientError> {
         URLSession.DataTaskPublisher(request: request, session: urlSession)
             .mapError(CometClientError.networkError)
-            .flatMap { output in
-                requestResponseHandler.handleResponse(data: output.data, response: output.response)
-            }
             .eraseToAnyPublisher()
     }
 }
