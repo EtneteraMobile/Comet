@@ -415,7 +415,12 @@ final class AuthenticatorTests: XCTestCase {
         XCTAssertEqual(counter, 1)
     }
 
-    func testAccessTokenIsReceivedWhenSubscribingToRefreshTokenPublisherAfterItAlreadyEmittedToken() {
+    // The refresh token publisher is returned when requesting access token,
+    // because the access token is being refreshed.
+    // Before a new subscription is created, the publisher emits a new access token
+    // and the subscriber can miss the emited value and completes without a value.
+    // We are using shareReplay operator to prevent this.
+    func testAccessTokenIsReceivedWhenSubscribingLate() {
         let token = "token"
         let tokenProvider = StubTokenProvider(
             accessToken: Fail(error: TokenProvidingError.internalError).eraseToAnyPublisher(),
