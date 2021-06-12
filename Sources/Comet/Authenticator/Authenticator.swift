@@ -9,6 +9,7 @@
 import Combine
 import Foundation
 
+/// TODO
 final class Authenticator {
     private let tokenProvider: TokenProviding
     private let queue = DispatchQueue(label: "Authenticator-\(UUID().uuidString)")
@@ -18,6 +19,7 @@ final class Authenticator {
         self.tokenProvider = tokenProvider
     }
 
+    /// TODO
     var accessToken: AnyPublisher<String, AuthenticatorError> {
         queue.sync { [weak self] in
             guard let unwrappedSelf = self else {
@@ -34,6 +36,7 @@ final class Authenticator {
         }
     }
 
+    /// TODO
     var refreshAccessToken: AnyPublisher<String, AuthenticatorError> {
         queue.sync { [weak self] in
             guard let unwrappedSelf = self else {
@@ -49,7 +52,7 @@ final class Authenticator {
                 .handleEvents(receiveCompletion: { _ in
                     unwrappedSelf.refreshTokenPublisher = nil
                 })
-                .share()
+                .share(replay: 1)
                 .eraseToAnyPublisher()
 
             unwrappedSelf.refreshTokenPublisher = publisher

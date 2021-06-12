@@ -415,7 +415,7 @@ final class AuthenticatorTests: XCTestCase {
         XCTAssertEqual(counter, 1)
     }
 
-    func testFailingTest() {
+    func testAccessTokenIsReceivedWhenSubscribingToRefreshTokenPublisherAfterItAlreadyEmittedToken() {
         let token = "token"
         let tokenProvider = StubTokenProvider(
             accessToken: Fail(error: TokenProvidingError.internalError).eraseToAnyPublisher(),
@@ -463,13 +463,6 @@ final class AuthenticatorTests: XCTestCase {
         receivedRefreshToken.sort()
         finishedRefreshedToken.sort()
         failed.sort()
-
-        print("-----------------RECEIVED-----------------")
-        print(receivedRefreshToken)
-        print("-----------------FINISHED-----------------")
-        print(finishedRefreshedToken)
-        print("------------------FAILED------------------")
-        print(failed)
 
         XCTAssertEqual(receivedRefreshToken, finishedRefreshedToken)
     }
