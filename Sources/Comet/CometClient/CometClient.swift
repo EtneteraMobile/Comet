@@ -17,6 +17,12 @@ public final class CometClient {
     private let authenticatedRequestBuilder: AuthenticatedRequestBuilding
     private let requestResponseHandler: RequestResponseHandling
 
+    /// TODO
+    /// - Parameters:
+    ///   - urlSession: TODO
+    ///   - tokenProvider: TODO
+    ///   - authenticatedRequestBuilder: TODO
+    ///   - requestResponseHandler: TODO
     public init(
         urlSession: URLSession = .shared,
         tokenProvider: TokenProviding,
@@ -29,6 +35,9 @@ public final class CometClient {
         self.requestResponseHandler = requestResponseHandler
     }
 
+    /// TODO
+    /// - Parameter request: TODO
+    /// - Returns: TODO
     public func performAuthenticatedRequest(
         _ request: URLRequest
     ) -> AnyPublisher<(data: Data, response: URLResponse), CometClientError> {
@@ -62,7 +71,7 @@ public final class CometClient {
                 case .unauthorized:
                     return unwrappedSelf.authenticator.refreshAccessToken
                         .mapError { $0.cometClientError }
-                        .flatMap{ token in
+                        .flatMap { token in
                             unwrappedSelf.performAuthenticatedRequest(request, with: token)
                         }
                         .eraseToAnyPublisher()
@@ -73,6 +82,12 @@ public final class CometClient {
             .eraseToAnyPublisher()
     }
 
+    /// TODO
+    /// - Parameters:
+    ///   - request: TODO
+    ///   - responseType: TODO
+    ///   - requestResponseHandler: TODO
+    /// - Returns: TODO
     public func performAuthenticatedRequest<ResponseObject: Decodable>(
         _ request: URLRequest,
         responseType: ResponseObject.Type,

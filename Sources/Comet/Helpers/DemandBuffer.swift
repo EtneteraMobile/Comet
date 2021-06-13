@@ -9,6 +9,7 @@
 import Combine
 import Foundation
 
+// This implementation is from [CombineExt](https://github.com/CombineCommunity/CombineExt)
 class DemandBuffer<S: Subscriber> {
     private let lock = NSRecursiveLock()
     private var buffer = [S.Input]()
@@ -21,8 +22,11 @@ class DemandBuffer<S: Subscriber> {
     }
 
     func buffer(value: S.Input) -> Subscribers.Demand {
-        precondition(self.completion == nil,
-                     "How could a completed publisher sent values?! Beats me 🤷‍♂️")
+        precondition(
+            self.completion == nil,
+            "How could a completed publisher sent values?! Beats me 🤷‍♂️"
+        )
+
         lock.lock()
         defer { lock.unlock() }
 
@@ -36,8 +40,10 @@ class DemandBuffer<S: Subscriber> {
     }
 
     func complete(completion: Subscribers.Completion<S.Failure>) {
-        precondition(self.completion == nil,
-                     "Completion have already occured, which is quite awkward 🥺")
+        precondition(
+            self.completion == nil,
+            "Completion have already occured, which is quite awkward 🥺"
+        )
 
         self.completion = completion
         _ = flush()

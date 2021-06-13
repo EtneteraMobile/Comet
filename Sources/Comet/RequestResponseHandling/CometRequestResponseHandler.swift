@@ -9,11 +9,19 @@
 import Combine
 import Foundation
 
-// TODO: documentation
+/// TODO
 public final class CometRequestResponseHandler: RequestResponseHandling {
     public init() {}
 
-    public func handleResponse<ResponseObject: Decodable>(data: Data, response: URLResponse) -> AnyPublisher<ResponseObject, CometClientError> {
+    /// TODO
+    /// - Parameters:
+    ///   - data: TODO
+    ///   - response: TODO
+    /// - Returns: TODO
+    public func handleResponse<ResponseObject: Decodable>(
+        data: Data,
+        response: URLResponse
+    ) -> AnyPublisher<ResponseObject, CometClientError> {
         guard let httpResponse = response as? HTTPURLResponse else {
             return Fail(error: CometClientError.internalError).eraseToAnyPublisher()
         }
@@ -24,7 +32,8 @@ public final class CometRequestResponseHandler: RequestResponseHandling {
         case 403,
              404,
              405..<500:
-            return Fail(error: CometClientError.httpError(code: httpResponse.statusCode)).eraseToAnyPublisher()
+            let error = CometClientError.httpError(code: httpResponse.statusCode)
+            return Fail(error: error).eraseToAnyPublisher()
         case 500..<600:
             return Fail(error: CometClientError.internalServerError).eraseToAnyPublisher()
         default:

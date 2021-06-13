@@ -7,8 +7,8 @@
 //
 
 import Combine
-import Foundation
 @testable import Comet
+import Foundation
 
 final class StubTokenProvider: TokenProviding {
     let accessToken: AnyPublisher<String, TokenProvidingError>

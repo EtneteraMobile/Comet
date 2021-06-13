@@ -6,9 +6,10 @@
 //  Copyright © 2021 Etnetera. All rights reserved.
 //
 
-import Foundation
 import Combine
+import Foundation
 
+// This implementation is from [CombineExt](https://github.com/CombineCommunity/CombineExt)
 final class ReplaySubject<Output, Failure: Error>: Subject {
     typealias Output = Output
     typealias Failure = Failure

@@ -9,7 +9,11 @@
 import Combine
 import Foundation
 
-// TODO: documentation
+/// TODO
 public protocol RequestResponseHandling {
+    /// TODO
+    /// - Parameters:
+    ///   - data: TODO
+    ///   - response: TODO
     func handleResponse<ResponseObject: Decodable>(data: Data, response: URLResponse) -> AnyPublisher<ResponseObject, CometClientError>
 }

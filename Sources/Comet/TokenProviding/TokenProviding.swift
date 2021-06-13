@@ -9,25 +9,24 @@
 import Combine
 import Foundation
 
-// TODO: add more information about accessToken and refreshAccessToken
-
-/// Provides access tokens for the [HTTPClient](x-source-tag://HTTPClient).
+/// Provides access tokens for the [CometClient](x-source-tag://CometClient).
 ///
-/// This is where you either load access tokens from the local storage (e.g. `Keychain`)
-/// or refresh access tokens.
-///
-/// - Tag: TokenProviding
+/// This is where you either load access tokens from the local storage (e.g. `Keychain`) or refresh access tokens.
 public protocol TokenProviding {
 
-    /// Publisher that emits either access token or `TokenManagingError`, if there is no access token.
+    /// Publisher that emits either access token or `TokenProvidingError`.
     ///
     /// This is where you usually load the access token from the local storage (e. g. `Keychain`).
-    /// You do not have to worry about or check the validity of the token.
-    /// The [HTTPClient](x-source-tag://HTTPClient) will automatically request a refreshed token, if the access token is not valid anymore.
+    /// You can try to validate the access token and return a `TokenProvidingError` if needed.
+    /// Or just load the access token from the local storage,
+    /// and [CometClient](x-source-tag://CometClient) will automatically request a refreshed access token if needed.
+    ///
+    /// - Attention: Never try to refresh the access token on your own if the token is invalid.
+    /// This will lead to a race condition and the [CometClient](x-source-tag://CometClient) won't behave appropriately.
     var accessToken: AnyPublisher<String, TokenProvidingError> { get }
 
-    /// Publisher that forces a refresh of the access token and then emits either the new access token or `TokenManagingError`, if there is no access token.
+    /// Publisher that emits either refreshed access token or `TokenProvidingError`.
     ///
-    /// This is where you usually request a new access token from a backend.
+    /// This is where you usually request a new access token from a backend or perform ilent login if possible.
     var refreshAccessToken: AnyPublisher<String, TokenProvidingError> { get }
 }

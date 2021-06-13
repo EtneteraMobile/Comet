@@ -17,6 +17,4 @@ final class CometClientTests: XCTestCase {
         super.setUp()
         cancellables = []
     }
-
-    
 }

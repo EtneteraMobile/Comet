@@ -8,8 +8,7 @@
 
 import Foundation
 
-// TODO: documentation
-// TODO: add more cases that are important
+/// TODO
 public enum CometClientError: Error {
     case internalError
     case unauthorized

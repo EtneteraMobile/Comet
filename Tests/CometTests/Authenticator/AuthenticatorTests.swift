@@ -10,6 +10,8 @@ import Combine
 @testable import Comet
 import XCTest
 
+// swiftlint:disable file_length
+// swiftlint:disable implicitly_unwrapped_optional
 final class AuthenticatorTests: XCTestCase {
     private var cancellables: Set<AnyCancellable>!
 
@@ -309,60 +311,31 @@ final class AuthenticatorTests: XCTestCase {
         )
         let sut = Authenticator(tokenProvider: tokenProvider)
 
-        let exp1 = XCTestExpectation()
-        var token1: String?
-        sut.refreshAccessToken
-            .sink(
-                receiveCompletion: { _ in },
-                receiveValue: { token in
-                    token1 = token
-                    exp1.fulfill()
-                }
-            )
-            .store(in: &cancellables)
+        let numberOfTokens = 10
+        var receivedTokens = [String]()
 
-        let exp2 = XCTestExpectation()
-        var token2: String?
-        sut.accessToken
-            .sink(
-                receiveCompletion: { _ in },
-                receiveValue: { token in
-                    token2 = token
-                    exp2.fulfill()
-                }
-            )
-            .store(in: &cancellables)
+        for index in 0..<numberOfTokens {
+            let exp = expectation(description: "\(index)")
+            let publisher = index % 2 == 0 ? sut.refreshAccessToken : sut.accessToken
 
-        let exp3 = XCTestExpectation()
-        var token3: String?
-        sut.refreshAccessToken
-            .sink(
-                receiveCompletion: { _ in },
-                receiveValue: { token in
-                    token3 = token
-                    exp3.fulfill()
-                }
-            )
-            .store(in: &cancellables)
+            publisher
+                .sink(
+                    receiveCompletion: { _ in },
+                    receiveValue: { token in
+                        receivedTokens.append(token)
+                        exp.fulfill()
+                    }
+                )
+                .store(in: &cancellables)
+        }
 
-        let exp4 = XCTestExpectation()
-        var token4: String?
-        sut.refreshAccessToken
-            .sink(
-                receiveCompletion: { _ in },
-                receiveValue: { token in
-                    token4 = token
-                    exp4.fulfill()
-                }
-            )
-            .store(in: &cancellables)
+        waitForExpectations(timeout: 4)
 
-        wait(for: [exp1, exp2, exp3, exp4], timeout: 4)
+        XCTAssertEqual(receivedTokens.count, numberOfTokens)
 
-        XCTAssertEqual(refreshedToken, token1)
-        XCTAssertEqual(refreshedToken, token2)
-        XCTAssertEqual(refreshedToken, token3)
-        XCTAssertEqual(refreshedToken, token4)
+        receivedTokens.forEach { token in
+            XCTAssertEqual(token, refreshedToken)
+        }
     }
 
     func testMultipleRequestsForTokenAndRefreshedTokenAtTheSameTimeCallsTokenProviderOnlyOnce() {
@@ -442,22 +415,22 @@ final class AuthenticatorTests: XCTestCase {
         var finishedRefreshedToken = [Int]()
         var failed = [Int]() // these get the access token, which is now a Fail
 
-        for i in 0...999 {
-            let exp = expectation(description: "\(i)")
+        for index in 0...999 {
+            let exp = expectation(description: "\(index)")
             sut.accessToken
                 .receive(on: DispatchQueue.main) // synchronizing the access to the arrays
                 .sink(
                     receiveCompletion: { completion in
                         switch completion {
                         case .finished:
-                            finishedRefreshedToken.append(i)
+                            finishedRefreshedToken.append(index)
                         case .failure:
-                            failed.append(i)
+                            failed.append(index)
                         }
                         exp.fulfill()
                     },
-                    receiveValue: { token in
-                        receivedRefreshToken.append(i)
+                    receiveValue: { _ in
+                        receivedRefreshToken.append(index)
                     }
                 )
                 .store(in: &cancellables)
@@ -470,23 +443,5 @@ final class AuthenticatorTests: XCTestCase {
         failed.sort()
 
         XCTAssertEqual(receivedRefreshToken, finishedRefreshedToken)
-    }
-}
-
-extension AuthenticatorError: Equatable {
-    public static func == (lhs: AuthenticatorError, rhs: AuthenticatorError) -> Bool {
-        switch (lhs, rhs) {
-        case (.noValidToken, .noValidToken),
-             (.internalError, .internalError),
-             (.loginRequired, .loginRequired),
-             (.internalServerError, .internalServerError):
-            return true
-        case (.httpError(let lhsCode), .httpError(let rhsCode)):
-            return lhsCode == rhsCode
-        case (.networkError(let lhsError), .networkError(let rhsError)):
-            return lhsError == rhsError
-        default:
-            return false
-        }
     }
 }
