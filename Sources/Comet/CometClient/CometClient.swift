@@ -121,6 +121,7 @@ private extension CometClient {
         _ request: URLRequest
     ) -> AnyPublisher<(data: Data, response: URLResponse), CometClientError> {
         URLSession.DataTaskPublisher(request: request, session: urlSession)
+            .debug()
             .mapError(CometClientError.networkError)
             .eraseToAnyPublisher()
     }
