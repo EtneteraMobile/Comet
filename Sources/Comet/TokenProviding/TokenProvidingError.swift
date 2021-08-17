@@ -34,7 +34,7 @@ public enum TokenProvidingError: Error {
     case internalServerError
 
     /// HTTP error.
-    case httpError(code: Int)
+    case httpError(code: Int, data: Data)
 
     /// TODO
     case networkError(from: URLError)

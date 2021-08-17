@@ -29,10 +29,9 @@ public final class CometRequestResponseHandler: RequestResponseHandling {
         switch httpResponse.statusCode {
         case 401:
             return Fail(error: CometClientError.unauthorized).eraseToAnyPublisher()
-        case 403,
-             404,
-             405..<500:
-            let error = CometClientError.httpError(code: httpResponse.statusCode)
+        case 400,
+             403..<500:
+            let error = CometClientError.httpError(code: httpResponse.statusCode, data: data)
             return Fail(error: error).eraseToAnyPublisher()
         case 500..<600:
             return Fail(error: CometClientError.internalServerError).eraseToAnyPublisher()

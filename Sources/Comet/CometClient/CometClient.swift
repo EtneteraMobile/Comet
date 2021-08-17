@@ -138,8 +138,8 @@ fileprivate extension AuthenticatorError {
             return .loginRequired
         case .internalServerError:
             return .internalServerError
-        case .httpError(let code):
-            return .httpError(code: code)
+        case let .httpError(code, data):
+            return .httpError(code: code, data: data)
         case .networkError(let error):
             return .networkError(from: error)
         }

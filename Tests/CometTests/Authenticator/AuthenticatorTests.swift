@@ -159,7 +159,7 @@ final class AuthenticatorTests: XCTestCase {
     func testHttpErrorIsReturnedWhenTokenProviderReturnsHttpError() {
         let code = 400
         let tokenProvider = StubTokenProvider(
-            accessToken: Fail(error: TokenProvidingError.httpError(code: code)).eraseToAnyPublisher(),
+            accessToken: Fail(error: TokenProvidingError.httpError(code: code, data: Data())).eraseToAnyPublisher(),
             refreshAccessToken: Empty().eraseToAnyPublisher()
         )
         let sut = Authenticator(tokenProvider: tokenProvider)
@@ -181,7 +181,7 @@ final class AuthenticatorTests: XCTestCase {
 
         waitForExpectations(timeout: 1)
 
-        XCTAssertEqual(receivedError, AuthenticatorError.httpError(code: code))
+        XCTAssertEqual(receivedError, AuthenticatorError.httpError(code: code, data: Data()))
     }
 
     func testInternalErrorIsReturnedWhenTokenProviderReturnsInternalError() {

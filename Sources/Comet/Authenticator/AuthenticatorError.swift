@@ -13,6 +13,6 @@ enum AuthenticatorError: Error {
     case internalError
     case loginRequired
     case internalServerError
-    case httpError(code: Int)
+    case httpError(code: Int, data: Data)
     case networkError(from: URLError)
 }

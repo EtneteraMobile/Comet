@@ -73,8 +73,8 @@ fileprivate extension TokenProvidingError {
             return .loginRequired
         case .internalServerError:
             return .internalServerError
-        case .httpError(let code):
-            return .httpError(code: code)
+        case let .httpError(code, data):
+            return .httpError(code: code, data: data)
         case .internalError:
             return .internalError
         case .networkError(let error):

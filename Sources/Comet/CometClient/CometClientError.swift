@@ -15,6 +15,6 @@ public enum CometClientError: Error {
     case loginRequired
     case parserError(reason: String)
     case networkError(from: URLError)
-    case httpError(code: Int)
+    case httpError(code: Int, data: Data)
     case internalServerError
 }
