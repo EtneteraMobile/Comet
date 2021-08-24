@@ -79,13 +79,6 @@ public final class CometClient {
                     return Fail(error: error).eraseToAnyPublisher()
                 }
             }
-            .flatMap { [weak self] data, response -> AnyPublisher<(data: Data, response: URLResponse), CometClientError> in
-                guard let self = self else {
-                    return Fail(error: .internalError).eraseToAnyPublisher()
-                }
-
-                return self.requestResponseHandler.handleResponse(data: data, response: response)
-            }
             .eraseToAnyPublisher()
     }
 }
@@ -107,6 +100,14 @@ private extension CometClient {
         URLSession.DataTaskPublisher(request: request, session: urlSession)
             .debug()
             .mapError(CometClientError.networkError)
+            .flatMap { [weak self] (data: Data, response: URLResponse) -> AnyPublisher<(data: Data, response: URLResponse), CometClientError> in
+                guard let self = self else {
+                    return Fail(error: .internalError).eraseToAnyPublisher()
+                }
+
+                return self.requestResponseHandler.handleResponse(data: data, response: response)
+                    .eraseToAnyPublisher()
+            }
             .eraseToAnyPublisher()
     }
 }

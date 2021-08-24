@@ -17,9 +17,9 @@ extension AuthenticatorError: Equatable {
              (.loginRequired, .loginRequired),
              (.internalServerError, .internalServerError):
             return true
-        case (.httpError(let lhsCode), .httpError(let rhsCode)):
+        case let (.httpError(lhsCode, _), .httpError(rhsCode, _)):
             return lhsCode == rhsCode
-        case (.networkError(let lhsError), .networkError(let rhsError)):
+        case let (.networkError(lhsError), .networkError(rhsError)):
             return lhsError == rhsError
         default:
             return false
