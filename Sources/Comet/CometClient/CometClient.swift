@@ -79,28 +79,12 @@ public final class CometClient {
                     return Fail(error: error).eraseToAnyPublisher()
                 }
             }
-            .eraseToAnyPublisher()
-    }
-
-    /// TODO
-    /// - Parameters:
-    ///   - request: TODO
-    ///   - responseType: TODO
-    ///   - requestResponseHandler: TODO
-    /// - Returns: TODO
-    public func performAuthenticatedRequest<ResponseObject: Decodable>(
-        _ request: URLRequest,
-        responseType: ResponseObject.Type,
-        requestResponseHandler: RequestResponseHandling? = nil
-    ) -> AnyPublisher<ResponseObject, CometClientError> {
-        performAuthenticatedRequest(request)
-            .flatMap { [weak self] data, response -> AnyPublisher<ResponseObject, CometClientError> in
-                guard let unwrappedSelf = self else {
-                    return Fail(error: CometClientError.internalError).eraseToAnyPublisher()
+            .flatMap { [weak self] data, response -> AnyPublisher<(data: Data, response: URLResponse), CometClientError> in
+                guard let self = self else {
+                    return Fail(error: .internalError).eraseToAnyPublisher()
                 }
 
-                return (requestResponseHandler ?? unwrappedSelf.requestResponseHandler)
-                    .handleResponse(data: data, response: response)
+                return self.requestResponseHandler.handleResponse(data: data, response: response)
             }
             .eraseToAnyPublisher()
     }

@@ -18,10 +18,10 @@ public final class CometRequestResponseHandler: RequestResponseHandling {
     ///   - data: TODO
     ///   - response: TODO
     /// - Returns: TODO
-    public func handleResponse<ResponseObject: Decodable>(
+    public func handleResponse(
         data: Data,
         response: URLResponse
-    ) -> AnyPublisher<ResponseObject, CometClientError> {
+    ) -> AnyPublisher<(data: Data, response: URLResponse), CometClientError> {
         guard let httpResponse = response as? HTTPURLResponse else {
             return Fail(error: CometClientError.internalError).eraseToAnyPublisher()
         }
@@ -29,17 +29,13 @@ public final class CometRequestResponseHandler: RequestResponseHandling {
         switch httpResponse.statusCode {
         case 401:
             return Fail(error: CometClientError.unauthorized).eraseToAnyPublisher()
-        case 400,
-             403..<500:
+        case 400, 402..<500:
             let error = CometClientError.httpError(code: httpResponse.statusCode, data: data)
             return Fail(error: error).eraseToAnyPublisher()
         case 500..<600:
             return Fail(error: CometClientError.internalServerError).eraseToAnyPublisher()
         default:
-            return Just(data)
-                .decode(type: ResponseObject.self, decoder: JSONDecoder())
-                .mapError { CometClientError.parserError(reason: $0.localizedDescription) }
-                .eraseToAnyPublisher()
+            return Just((data: data, response: response)).setFailureType(to: CometClientError.self).eraseToAnyPublisher()
         }
     }
 }

@@ -15,5 +15,8 @@ public protocol RequestResponseHandling {
     /// - Parameters:
     ///   - data: TODO
     ///   - response: TODO
-    func handleResponse<ResponseObject: Decodable>(data: Data, response: URLResponse) -> AnyPublisher<ResponseObject, CometClientError>
+    func handleResponse(
+        data: Data,
+        response: URLResponse
+    ) -> AnyPublisher<(data: Data, response: URLResponse), CometClientError>
 }
