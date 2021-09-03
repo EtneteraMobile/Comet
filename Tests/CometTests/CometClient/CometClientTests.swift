@@ -18,7 +18,7 @@ final class CometClientTests: XCTestCase {
         cancellables = []
     }
 
-    func testIfCometClientErrorReturnsSameErrorWhenAccessTokenFailsOnHttpError401() {
+    func testIfCometClientErrorReturnsUnauthorizedWhenReceivesCode401() {
         let stubTokenProvider: TokenProviding = StubTokenProvider(
             accessToken: Fail(error: TokenProvidingError.httpError(code: 401)).eraseToAnyPublisher(),
             refreshAccessToken: Empty().eraseToAnyPublisher()
@@ -46,6 +46,6 @@ final class CometClientTests: XCTestCase {
 
         waitForExpectations(timeout: 1)
 
-        XCTAssertEqual(receivedError, CometClientError.httpError(code: 401))
+        XCTAssertEqual(receivedError, CometClientError.unauthorized)
     }
 }
