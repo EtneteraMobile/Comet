@@ -17,4 +17,35 @@ final class CometClientTests: XCTestCase {
         super.setUp()
         cancellables = []
     }
+
+    func testIfCometClientErrorReturnsSameErrorWhenAccessTokenFailsOnHttpError401() {
+        let stubTokenProvider: TokenProviding = StubTokenProvider(
+            accessToken: Fail(error: TokenProvidingError.httpError(code: 401)).eraseToAnyPublisher(),
+            refreshAccessToken: Empty().eraseToAnyPublisher()
+        )
+
+        let sut = CometClient(
+            tokenProvider: stubTokenProvider,
+            authenticatedRequestBuilder: AuthenticatedRequestBuildingMock()
+        )
+
+        let exp = expectation(description: "")
+        var receivedError: CometClientError?
+
+        sut.performAuthenticatedRequest(URLRequest(url: URL(string: "wwww.someURL.com")!))
+            .sink(
+                receiveCompletion: { completion in
+                    if case let Subscribers.Completion.failure(error) = completion {
+                        receivedError = error
+                        exp.fulfill()
+                    }
+                },
+                receiveValue: { _ in }
+            )
+            .store(in: &cancellables)
+
+        waitForExpectations(timeout: 1)
+
+        XCTAssertEqual(receivedError, CometClientError.httpError(code: 401))
+    }
 }
