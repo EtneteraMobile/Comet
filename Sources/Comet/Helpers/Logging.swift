@@ -39,7 +39,7 @@ public struct RequestLogLevel: OptionSet {
     public static let full: RequestLogLevel = [.url, .headers, .body]
 }
 
-extension URLSession.DataTaskPublisher {
+public extension URLSession.DataTaskPublisher {
     func debug(logLevel: RequestLogLevel) -> Publishers.HandleEvents<Self> {
         handleEvents(
             receiveSubscription: { _ in
