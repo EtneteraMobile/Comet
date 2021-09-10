@@ -16,6 +16,7 @@ public final class CometClient {
     private let authenticator: Authenticator
     private let authenticatedRequestBuilder: AuthenticatedRequestBuilding
     private let requestResponseHandler: RequestResponseHandling
+    private let logLevel: RequestLogLevel
 
     /// TODO
     /// - Parameters:
@@ -27,12 +28,14 @@ public final class CometClient {
         urlSession: URLSession = .shared,
         tokenProvider: TokenProviding,
         authenticatedRequestBuilder: AuthenticatedRequestBuilding,
-        requestResponseHandler: RequestResponseHandling = CometRequestResponseHandler()
+        requestResponseHandler: RequestResponseHandling = CometRequestResponseHandler(),
+        logLevel: RequestLogLevel = .full
     ) {
         self.urlSession = urlSession
         self.authenticator = Authenticator(tokenProvider: tokenProvider)
         self.authenticatedRequestBuilder = authenticatedRequestBuilder
         self.requestResponseHandler = requestResponseHandler
+        self.logLevel = logLevel
     }
 
     /// TODO
@@ -98,7 +101,7 @@ private extension CometClient {
         _ request: URLRequest
     ) -> AnyPublisher<(data: Data, response: URLResponse), CometClientError> {
         URLSession.DataTaskPublisher(request: request, session: urlSession)
-            .debug()
+            .debug(logLevel: logLevel)
             .mapError(CometClientError.networkError)
             .flatMap { [weak self] (data: Data, response: URLResponse) -> AnyPublisher<(data: Data, response: URLResponse), CometClientError> in
                 guard let self = self else {
