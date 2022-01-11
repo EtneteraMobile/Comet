@@ -130,17 +130,17 @@ private extension CometClient {
                 guard let self = self else {
                     return Fail(error: CometClientError.internalError).eraseToAnyPublisher()
                 }
-                
+
                 return self.handleUnauthorizedRequest(from: (data, response))
             }
             .eraseToAnyPublisher()
     }
-    
+
     func handleUnauthorizedRequest(from output: Output) -> AnyPublisher<Output, CometClientError> {
         guard let httpResponse = output.response as? HTTPURLResponse else {
             return Fail(error: CometClientError.internalError).eraseToAnyPublisher()
         }
-        
+
         return httpResponse.statusCode == 401
             ? Fail(error: CometClientError.unauthorized).eraseToAnyPublisher()
             : Just(output).setFailureType(to: CometClientError.self).eraseToAnyPublisher()
@@ -156,10 +156,10 @@ fileprivate extension AuthenticatorError {
             return .internalError
         case .loginRequired:
             return .loginRequired
-        case .internalServerError:
-            return .internalServerError
-        case .httpError(let code):
-            return .httpError(code: code)
+        case let .serverError(code, data):
+            return .serverError(code: code, data: data)
+        case let .clientError(code, data):
+            return .clientError(code: code, data: data)
         case .networkError(let error):
             return .networkError(from: error)
         }

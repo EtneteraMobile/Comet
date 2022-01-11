@@ -12,7 +12,7 @@ enum AuthenticatorError: Error {
     case noValidToken
     case internalError
     case loginRequired
-    case internalServerError
-    case httpError(code: Int)
+    case serverError(code: Int, data: Data)
+    case clientError(code: Int, data: Data)
     case networkError(from: URLError)
 }

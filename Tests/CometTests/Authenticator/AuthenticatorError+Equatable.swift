@@ -14,11 +14,14 @@ extension AuthenticatorError: Equatable {
         switch (lhs, rhs) {
         case (.noValidToken, .noValidToken),
              (.internalError, .internalError),
-             (.loginRequired, .loginRequired),
-             (.internalServerError, .internalServerError):
+             (.loginRequired, .loginRequired):
             return true
-        case (.httpError(let lhsCode), .httpError(let rhsCode)):
-            return lhsCode == rhsCode
+        case let (.clientError(lhsCode, lhsData), .clientError(rhsCode, rhsData)):
+            return lhsCode == rhsCode &&
+                lhsData == rhsData
+        case let (.serverError(lhsCode, lhsData), .serverError(rhsCode, rhsData)):
+            return lhsCode == rhsCode &&
+                lhsData == rhsData
         case (.networkError(let lhsError), .networkError(let rhsError)):
             return lhsError == rhsError
         default:
