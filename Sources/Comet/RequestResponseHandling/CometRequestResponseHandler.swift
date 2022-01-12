@@ -27,20 +27,22 @@ public final class CometRequestResponseHandler: RequestResponseHandling {
         }
 
         switch httpResponse.statusCode {
+        case 100..<400:
+            return Just(data)
+                    .decode(type: ResponseObject.self, decoder: JSONDecoder())
+                    .mapError { CometClientError.parserError(reason: $0.localizedDescription) }
+                    .eraseToAnyPublisher()
         case 401:
             return Fail(error: CometClientError.unauthorized).eraseToAnyPublisher()
-        case 403,
-             404,
-             405..<500:
-            let error = CometClientError.httpError(code: httpResponse.statusCode)
+        case 402..<500:
+            let error = CometClientError.clientError(error: CometClientHttpError(code: httpResponse.statusCode, data: data))
             return Fail(error: error).eraseToAnyPublisher()
         case 500..<600:
-            return Fail(error: CometClientError.internalServerError).eraseToAnyPublisher()
+            let error = CometClientError.serverError(error: CometClientHttpError(code: httpResponse.statusCode, data: data))
+            return Fail(error: error).eraseToAnyPublisher()
         default:
-            return Just(data)
-                .decode(type: ResponseObject.self, decoder: JSONDecoder())
-                .mapError { CometClientError.parserError(reason: $0.localizedDescription) }
-                .eraseToAnyPublisher()
+            let error = CometClientError.unknownError(error: CometClientHttpError(code: httpResponse.statusCode, data: data))
+            return Fail(error: error).eraseToAnyPublisher()
         }
     }
 }

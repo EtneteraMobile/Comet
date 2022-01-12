@@ -27,14 +27,14 @@ public enum TokenProvidingError: Error {
     /// Use this error, if
     case internalError
 
-    /// Internal server error.
+    /// Server error.
     ///
-    /// Use this error, if a server returns internal server error (status code 500),
+    /// Use this error, if a server returns server error (status codes 5xx),
     /// when refreshing the access token.
-    case internalServerError
+    case serverError(error: TokenProvidingHttpError)
 
-    /// HTTP error.
-    case httpError(code: Int)
+    /// client error (status codes 4xx).
+    case clientError(error: TokenProvidingHttpError)
 
     /// TODO
     case networkError(from: URLError)
