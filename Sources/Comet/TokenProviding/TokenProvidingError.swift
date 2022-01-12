@@ -31,10 +31,10 @@ public enum TokenProvidingError: Error {
     ///
     /// Use this error, if a server returns server error (status codes 5xx),
     /// when refreshing the access token.
-    case serverError(code: Int, data: Data)
+    case serverError(error: TokenProvidingHttpError)
 
     /// client error (status codes 4xx).
-    case clientError(code: Int, data: Data)
+    case clientError(error: TokenProvidingHttpError)
 
     /// TODO
     case networkError(from: URLError)

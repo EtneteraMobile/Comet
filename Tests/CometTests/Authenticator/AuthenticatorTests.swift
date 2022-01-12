@@ -133,7 +133,11 @@ final class AuthenticatorTests: XCTestCase {
         let code = 500
         let data = Data(count: 0)
         let tokenProvider = StubTokenProvider(
-            accessToken: Fail(error: TokenProvidingError.serverError(code: code, data: data)).eraseToAnyPublisher(),
+            accessToken: Fail(
+                error: TokenProvidingError.serverError(
+                    error: TokenProvidingHttpError(code: code, data: data)
+                )
+            ).eraseToAnyPublisher(),
             refreshAccessToken: Empty().eraseToAnyPublisher()
         )
         let sut = Authenticator(tokenProvider: tokenProvider)
@@ -155,14 +159,18 @@ final class AuthenticatorTests: XCTestCase {
 
         waitForExpectations(timeout: 1)
 
-        XCTAssertEqual(receivedError, AuthenticatorError.serverError(code: code, data: data))
+        XCTAssertEqual(receivedError, AuthenticatorError.serverError(error: AuthenticatorHttpError(code: code, data: data)))
     }
 
     func testHttpErrorIsReturnedWhenTokenProviderReturnsHttpError() {
         let code = 400
         let data = Data(count: 0)
         let tokenProvider = StubTokenProvider(
-            accessToken: Fail(error: TokenProvidingError.clientError(code: code, data: data)).eraseToAnyPublisher(),
+            accessToken: Fail(
+                error: TokenProvidingError.clientError(
+                    error: TokenProvidingHttpError(code: code, data: data)
+                )
+            ).eraseToAnyPublisher(),
             refreshAccessToken: Empty().eraseToAnyPublisher()
         )
         let sut = Authenticator(tokenProvider: tokenProvider)
@@ -184,7 +192,12 @@ final class AuthenticatorTests: XCTestCase {
 
         waitForExpectations(timeout: 1)
 
-        XCTAssertEqual(receivedError, AuthenticatorError.clientError(code: code, data: data))
+        XCTAssertEqual(
+            receivedError,
+            AuthenticatorError.clientError(
+                error: AuthenticatorHttpError(code: code, data: data)
+            )
+        )
     }
 
     func testInternalErrorIsReturnedWhenTokenProviderReturnsInternalError() {

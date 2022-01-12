@@ -156,10 +156,10 @@ fileprivate extension AuthenticatorError {
             return .internalError
         case .loginRequired:
             return .loginRequired
-        case let .serverError(code, data):
-            return .serverError(code: code, data: data)
-        case let .clientError(code, data):
-            return .clientError(code: code, data: data)
+        case let .serverError(error):
+            return .serverError(error: CometClientHttpError(code: error.code, data: error.data))
+        case let .clientError(error):
+            return .clientError(error: CometClientHttpError(code: error.code, data: error.data))
         case .networkError(let error):
             return .networkError(from: error)
         }

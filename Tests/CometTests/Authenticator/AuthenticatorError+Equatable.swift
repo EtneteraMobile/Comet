@@ -16,12 +16,10 @@ extension AuthenticatorError: Equatable {
              (.internalError, .internalError),
              (.loginRequired, .loginRequired):
             return true
-        case let (.clientError(lhsCode, lhsData), .clientError(rhsCode, rhsData)):
-            return lhsCode == rhsCode &&
-                lhsData == rhsData
-        case let (.serverError(lhsCode, lhsData), .serverError(rhsCode, rhsData)):
-            return lhsCode == rhsCode &&
-                lhsData == rhsData
+        case let (.clientError(lhsHttpError), .clientError(rhsHttpError)):
+            return lhsHttpError == rhsHttpError
+        case let (.serverError(lhsHttpError), .serverError(rhsHttpError)):
+            return lhsHttpError == rhsHttpError
         case (.networkError(let lhsError), .networkError(let rhsError)):
             return lhsError == rhsError
         default:
