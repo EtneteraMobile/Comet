@@ -43,7 +43,7 @@ public final class CometClient {
     /// - Returns: TODO
     public func performAuthenticatedRequest(
         _ request: URLRequest
-    ) -> AnyPublisher<(data: Data, response: URLResponse), CometClientError> {
+    ) -> AnyPublisher<Output, CometClientError> {
         authenticator.accessToken
             .catch { [weak self] error -> AnyPublisher<String, AuthenticatorError> in
                 switch error {
@@ -58,14 +58,14 @@ public final class CometClient {
                 }
             }
             .mapError { $0.cometClientError }
-            .flatMap { [weak self] token -> AnyPublisher<(data: Data, response: URLResponse), CometClientError> in
+            .flatMap { [weak self] token -> AnyPublisher<Output, CometClientError> in
                 guard let unwrappedSelf = self else {
                     return Fail(error: CometClientError.internalError).eraseToAnyPublisher()
                 }
 
                 return unwrappedSelf.performAuthenticatedRequest(request, with: token)
             }
-            .catch { [weak self] error -> AnyPublisher<(data: Data, response: URLResponse), CometClientError> in
+            .catch { [weak self] error -> AnyPublisher<Output, CometClientError> in
                 guard let unwrappedSelf = self else {
                     return Fail(error: CometClientError.internalError).eraseToAnyPublisher()
                 }
@@ -86,11 +86,15 @@ public final class CometClient {
     }
 }
 
+public extension CometClient {
+    typealias Output = (data: Data, response: URLResponse)
+}
+
 private extension CometClient {
     func performAuthenticatedRequest(
         _ request: URLRequest,
         with token: String
-    ) -> AnyPublisher<(data: Data, response: URLResponse), CometClientError> {
+    ) -> AnyPublisher<Output, CometClientError> {
         Just(authenticatedRequestBuilder.authenticatedRequest(from: request, with: token))
             .setFailureType(to: CometClientError.self)
             .flatMap(performRequest)
@@ -99,19 +103,28 @@ private extension CometClient {
 
     func performRequest(
         _ request: URLRequest
-    ) -> AnyPublisher<(data: Data, response: URLResponse), CometClientError> {
+    ) -> AnyPublisher<Output, CometClientError> {
         URLSession.DataTaskPublisher(request: request, session: urlSession)
             .debug(logLevel: logLevel)
             .mapError(CometClientError.networkError)
-            .flatMap { [weak self] (data: Data, response: URLResponse) -> AnyPublisher<(data: Data, response: URLResponse), CometClientError> in
+            .flatMap { [weak self] data, response -> AnyPublisher<Output, CometClientError> in
                 guard let self = self else {
-                    return Fail(error: .internalError).eraseToAnyPublisher()
+                    return Fail(error: CometClientError.internalError).eraseToAnyPublisher()
                 }
 
-                return self.requestResponseHandler.handleResponse(data: data, response: response)
-                    .eraseToAnyPublisher()
+                return self.handleUnauthorizedRequest(from: (data, response))
             }
             .eraseToAnyPublisher()
+    }
+
+    func handleUnauthorizedRequest(from output: Output) -> AnyPublisher<Output, CometClientError> {
+        guard let httpResponse = output.response as? HTTPURLResponse else {
+            return Fail(error: CometClientError.internalError).eraseToAnyPublisher()
+        }
+
+        return httpResponse.statusCode == 401
+            ? Fail(error: CometClientError.unauthorized).eraseToAnyPublisher()
+            : Just(output).setFailureType(to: CometClientError.self).eraseToAnyPublisher()
     }
 }
 
@@ -124,10 +137,10 @@ fileprivate extension AuthenticatorError {
             return .internalError
         case .loginRequired:
             return .loginRequired
-        case .internalServerError:
-            return .internalServerError
-        case let .httpError(code, data):
-            return .httpError(code: code, data: data)
+        case let .serverError(error):
+            return .serverError(error: CometClientHttpError(code: error.code, data: error.data))
+        case let .clientError(error):
+            return .clientError(error: CometClientHttpError(code: error.code, data: error.data))
         case .networkError(let error):
             return .networkError(from: error)
         }
