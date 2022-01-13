@@ -5,6 +5,11 @@
 import Foundation
 
 public struct TokenProvidingHttpError {
-    let code: Int
-    let data: Data
+    public init(code: Int, data: Data) {
+        self.code = code
+        self.data = data
+    }
+
+    public let code: Int
+    public let data: Data
 }

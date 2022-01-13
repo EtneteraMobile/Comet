@@ -5,6 +5,6 @@
 import Foundation
 
 public struct CometClientHttpError {
-    let code: Int
-    let data: Data
+    public let code: Int
+    public let data: Data
 }
