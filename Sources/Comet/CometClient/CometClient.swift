@@ -25,14 +25,14 @@ public final class CometClient {
     ///   - tokenProvider: TODO
     ///   - authenticatedRequestBuilder: TODO
     ///   - requestResponseHandler: TODO
-    ///   - logLevel: TODO
-    ///   - logger: TODO
+    ///   - logLevel: Defines range of debug loggs
+    ///   - logger: Provide custom log handler. As default log handling is used `Swift.print`
     public init(
         urlSession: URLSession = .shared,
         tokenProvider: TokenProviding,
         authenticatedRequestBuilder: AuthenticatedRequestBuilding,
         requestResponseHandler: RequestResponseHandling = CometRequestResponseHandler(),
-        logLevel: RequestLogLevel = .full,
+        logLevel: RequestLogLevel = .none,
         logger: @escaping (String) -> Void = { Swift.print($0) }
     ) {
         self.urlSession = urlSession

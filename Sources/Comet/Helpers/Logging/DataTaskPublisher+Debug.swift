@@ -16,6 +16,10 @@ public extension URLSession.DataTaskPublisher {
     ) -> Publishers.HandleEvents<Self> {
         handleEvents(
             receiveSubscription: { _ in
+                guard logLevel.contains(.none) == false else {
+                    return
+                }
+
                 if logLevel.contains(.url) {
                     logger(request.urlDebugDescription)
                 }
