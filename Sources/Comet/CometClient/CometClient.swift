@@ -16,8 +16,7 @@ public final class CometClient {
     private let authenticator: Authenticator
     private let authenticatedRequestBuilder: AuthenticatedRequestBuilding
     private let requestResponseHandler: RequestResponseHandling
-    private let logLevel: RequestLogLevel
-    private let logger: (String) -> Void
+    private let logConfiguration: LogConfiguration
 
     /// TODO
     /// - Parameters:
@@ -25,22 +24,24 @@ public final class CometClient {
     ///   - tokenProvider: TODO
     ///   - authenticatedRequestBuilder: TODO
     ///   - requestResponseHandler: TODO
-    ///   - logLevel: Defines range of debug loggs
-    ///   - logger: Provide custom log handler. As default log handling is used `Swift.print`
+    ///   - logConfiguration:
+    ///         `logLevel`: Defines range of debug loggs
+    ///         `logger`: Provide custom log handler. As default log handling is used `Swift.print`
     public init(
         urlSession: URLSession = .shared,
         tokenProvider: TokenProviding,
         authenticatedRequestBuilder: AuthenticatedRequestBuilding,
         requestResponseHandler: RequestResponseHandling = CometRequestResponseHandler(),
-        logLevel: RequestLogLevel = .none,
-        logger: @escaping (String) -> Void = { Swift.print($0) }
+        logConfiguration: LogConfiguration = .init(
+            logLevel: .none,
+            logger: { Swift.print($0) }
+        )
     ) {
         self.urlSession = urlSession
         self.authenticator = Authenticator(tokenProvider: tokenProvider)
         self.authenticatedRequestBuilder = authenticatedRequestBuilder
         self.requestResponseHandler = requestResponseHandler
-        self.logLevel = logLevel
-        self.logger = logger
+        self.logConfiguration = logConfiguration
     }
 
     /// TODO
@@ -134,8 +135,8 @@ private extension CometClient {
     ) -> AnyPublisher<Output, CometClientError> {
         URLSession.DataTaskPublisher(request: request, session: urlSession)
             .debug(
-                logLevel: logLevel,
-                logger: logger
+                logLevel: logConfiguration.logLevel,
+                logger: logConfiguration.logger
             )
             .mapError(CometClientError.networkError)
             .flatMap { [weak self] data, response -> AnyPublisher<Output, CometClientError> in
