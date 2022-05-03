@@ -16,6 +16,7 @@ public final class CometClient {
     private let authenticator: Authenticator
     private let authenticatedRequestBuilder: AuthenticatedRequestBuilding
     private let requestResponseHandler: RequestResponseHandling
+    private let logConfiguration: LogConfiguration
 
     /// TODO
     /// - Parameters:
@@ -23,16 +24,24 @@ public final class CometClient {
     ///   - tokenProvider: TODO
     ///   - authenticatedRequestBuilder: TODO
     ///   - requestResponseHandler: TODO
+    ///   - logConfiguration:
+    ///         `logLevel`: Defines range of debug loggs
+    ///         `logger`: Provide custom log handler. As default log handling is used `Swift.print`
     public init(
         urlSession: URLSession = .shared,
         tokenProvider: TokenProviding,
         authenticatedRequestBuilder: AuthenticatedRequestBuilding,
-        requestResponseHandler: RequestResponseHandling = CometRequestResponseHandler()
+        requestResponseHandler: RequestResponseHandling = CometRequestResponseHandler(),
+        logConfiguration: LogConfiguration = .init(
+            logLevel: .none,
+            logger: { Swift.print($0) }
+        )
     ) {
         self.urlSession = urlSession
         self.authenticator = Authenticator(tokenProvider: tokenProvider)
         self.authenticatedRequestBuilder = authenticatedRequestBuilder
         self.requestResponseHandler = requestResponseHandler
+        self.logConfiguration = logConfiguration
     }
 
     /// TODO
@@ -125,6 +134,10 @@ private extension CometClient {
         _ request: URLRequest
     ) -> AnyPublisher<Output, CometClientError> {
         URLSession.DataTaskPublisher(request: request, session: urlSession)
+            .debug(
+                logLevel: logConfiguration.logLevel,
+                logger: logConfiguration.logger
+            )
             .mapError(CometClientError.networkError)
             .flatMap { [weak self] data, response -> AnyPublisher<Output, CometClientError> in
                 guard let self = self else {
