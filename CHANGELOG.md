@@ -9,3 +9,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
  - Better network error handling
  - Public members and init in CometClientHttpError and TokenProvidingHttpError
+ - Added support for custom handling of 401(unauthorized) HTTP errors 
