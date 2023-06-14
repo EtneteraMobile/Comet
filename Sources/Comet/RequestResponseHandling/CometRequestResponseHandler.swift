@@ -33,7 +33,8 @@ public final class CometRequestResponseHandler: RequestResponseHandling {
                     .mapError { CometClientError.parserError(reason: $0.localizedDescription) }
                     .eraseToAnyPublisher()
         case 401:
-            return Fail(error: CometClientError.unauthorized).eraseToAnyPublisher()
+            let error = CometClientError.clientError(error: CometClientHttpError(code: httpResponse.statusCode, data: data))
+            return Fail(error: error).eraseToAnyPublisher()
         case 402..<500:
             let error = CometClientError.clientError(error: CometClientHttpError(code: httpResponse.statusCode, data: data))
             return Fail(error: error).eraseToAnyPublisher()

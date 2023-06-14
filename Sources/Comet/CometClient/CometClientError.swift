@@ -11,7 +11,7 @@ import Foundation
 /// TODO
 public enum CometClientError: Error {
     case internalError
-    case unauthorized
+    case unauthorized(error: CometClientHttpResponseError)
     case loginRequired
     case parserError(reason: String)
     case networkError(from: URLError)
