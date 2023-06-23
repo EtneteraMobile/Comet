@@ -131,7 +131,30 @@ public final class CometClient {
             guard let unwrappedSelf = self else {
                 return Fail(error: CometClientError.internalError).eraseToAnyPublisher()
             }
-            return unwrappedSelf.performAuthenticatedRequest(request, with: token)
+            return unwrappedSelf
+            .performAuthenticatedRequest(request, with: token)
+            .catch { [weak self] error -> AnyPublisher<Output, CometClientError> in
+                guard let unwrappedSelf = self else {
+                    return Fail(error: CometClientError.internalError).eraseToAnyPublisher()
+                }
+
+                switch error {
+                case let .unauthorized(httpResponseError):
+                    if let unauthorizedResponseHandler = unwrappedSelf.unauthorizedResponseHandler {
+                        return unauthorizedResponseHandler
+                        .handleResponse(response: httpResponseError.response, data: httpResponseError.data)
+                        .flatMap { _ in
+                            Fail(error: error)
+                        }
+                        .eraseToAnyPublisher()
+                    } else {
+                        return Fail(error: error).eraseToAnyPublisher()
+                    }
+                default:
+                    return Fail(error: error).eraseToAnyPublisher()
+                }
+            }
+            .eraseToAnyPublisher()
         }
         .eraseToAnyPublisher()
     }

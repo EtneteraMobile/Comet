@@ -10,3 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - Better network error handling
  - Public members and init in CometClientHttpError and TokenProvidingHttpError
  - Added support for custom handling of 401(unauthorized) HTTP errors 
+
+### Fixed
+ - extend custom HTTP 401(unauthorized) error handling to recurring requests after token renewal
