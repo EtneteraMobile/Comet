@@ -11,9 +11,6 @@ import Foundation
 
 /// TODO
 public protocol RequestResponseHandling {
-    /// TODO
-    /// - Parameters:
-    ///   - data: TODO
-    ///   - response: TODO
-    func handleResponse<ResponseObject: Decodable>(data: Data, response: URLResponse) -> AnyPublisher<ResponseObject, CometClientError>
+    func handleResponse<ResponseObject: Decodable>(data: Data) -> AnyPublisher<ResponseObject, CometClientError>
+	func handleHTTPResponse(data: Data, response: URLResponse) -> AnyPublisher<Data, CometClientError>
 }
